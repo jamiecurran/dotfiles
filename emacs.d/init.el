@@ -14,7 +14,8 @@
 		      cider
 		      exec-path-from-shell
 		      moe-theme
-		      magit))
+		      magit
+		      company))
 
 (dolist (p my-packages)
   (unless (package-installed-p p)
@@ -25,6 +26,8 @@
 
 (add-hook 'emacs-lisp-mode-hook 'paredit-mode)
 (add-hook 'clojure-mode-hook 'paredit-mode)
+(add-hook 'cider-repl-mode-hook 'paredit-mode)
+(add-hook 'after-init-hook 'global-company-mode)
 
 (setq inhibit-splash-screen t)
 (tool-bar-mode -1)
