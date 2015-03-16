@@ -10,7 +10,7 @@
 
 (defvar my-packages '(clojure-mode
 		      projectile
-		      smartparens
+		      paredit
 		      cider
 		      exec-path-from-shell
 		      moe-theme
@@ -23,6 +23,16 @@
 (when (memq window-system '(mac ns))
   (exec-path-from-shell-initialize))
 
-(smartparens-global-mode t)
+(add-hook 'emacs-lisp-mode-hook 'paredit-mode)
+(add-hook 'clojure-mode-hook 'paredit-mode)
 
+(setq inhibit-splash-screen t)
+(tool-bar-mode -1)
+(menu-bar-mode -1)
+(scroll-bar-mode -1)
+(global-linum-mode t)
+
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
+
+(require 'moe-theme)
 (moe-dark)
