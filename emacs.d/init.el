@@ -29,6 +29,10 @@
 (add-hook 'cider-repl-mode-hook 'paredit-mode)
 (add-hook 'after-init-hook 'global-company-mode)
 
+(projectile-global-mode)
+
+(setq cider-repl-use-clojure-font-lock t)
+
 (setq inhibit-splash-screen t)
 (tool-bar-mode -1)
 (menu-bar-mode -1)
