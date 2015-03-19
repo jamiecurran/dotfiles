@@ -3,6 +3,8 @@
 	     '("melpha-stable" . "http://melpa-stable.milkbox.net/packages/"))
 (add-to-list 'package-archives
              '("melpa" . "http://melpa.milkbox.net/packages/") t)
+(add-to-list 'package-archives
+	     '("marmalade" . "http://marmalade-repo.org/packages/"))
 (package-initialize)
 
 (when (not package-archive-contents)
@@ -15,11 +17,15 @@
 		      exec-path-from-shell
 		      moe-theme
 		      magit
-		      company))
+		      company
+		      scala-mode2
+		      sbt-mode
+		      ensime
+		      haskell-mode))
 
 (dolist (p my-packages)
   (unless (package-installed-p p)
-    (package-install p)))
+    (package-install p))) 
 
 (when (memq window-system '(mac ns))
   (exec-path-from-shell-initialize))
@@ -28,6 +34,7 @@
 (add-hook 'clojure-mode-hook 'paredit-mode)
 (add-hook 'cider-repl-mode-hook 'paredit-mode)
 (add-hook 'after-init-hook 'global-company-mode)
+(add-hook 'scala-mode-hook 'ensime-scala-mode-hook)
 
 (projectile-global-mode)
 
