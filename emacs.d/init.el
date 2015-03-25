@@ -21,7 +21,8 @@
 		      scala-mode2
 		      sbt-mode
 		      ensime
-		      haskell-mode))
+		      haskell-mode
+		      rainbow-delimiters))
 
 (dolist (p my-packages)
   (unless (package-installed-p p)
@@ -34,6 +35,8 @@
 (add-hook 'clojure-mode-hook 'paredit-mode)
 (add-hook 'cider-repl-mode-hook 'paredit-mode)
 (add-hook 'after-init-hook 'global-company-mode)
+(add-hook 'clojure-mode-hook ' rainbow-delimiters-mode)
+(add-hook 'cider-repl-mode-hook ' rainbow-delimiters-mode)
 (add-hook 'scala-mode-hook 'ensime-scala-mode-hook)
 
 (projectile-global-mode)
