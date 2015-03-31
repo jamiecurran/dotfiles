@@ -22,7 +22,8 @@
 		      sbt-mode
 		      ensime
 		      haskell-mode
-		      rainbow-delimiters))
+		      rainbow-delimiters
+		      dockerfile-mode))
 
 (dolist (p my-packages)
   (unless (package-installed-p p)
