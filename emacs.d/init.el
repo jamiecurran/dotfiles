@@ -22,7 +22,8 @@
 		      sbt-mode
 		      ensime
 		      haskell-mode
-		      rainbow-delimiters))
+		      rainbow-delimiters
+		      impatient-mode))
 
 (dolist (p my-packages)
   (unless (package-installed-p p)
