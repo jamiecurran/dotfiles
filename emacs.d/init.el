@@ -10,20 +10,21 @@
 (when (not package-archive-contents)
   (package-refresh-contents))
 
-(defvar my-packages '(clojure-mode
-		      projectile
-		      paredit
-		      cider
-		      exec-path-from-shell
-		      moe-theme
-		      magit
-		      company
-		      scala-mode2
-		      sbt-mode
-		      ensime
-		      haskell-mode
-		      rainbow-delimiters
-		      impatient-mode))
+(defvar my-packages ('clojure-mode
+		     projectile
+		     paredit
+		     cider
+		     exec-path-from-shell
+		     moe-theme
+		     magit
+		     company
+		     scala-mode2
+		     sbt-mode
+		     ensime
+		     haskell-mode
+		     rainbow-delimiters
+		     impatient-mode
+		     dockerfile-mode))
 
 (dolist (p my-packages)
   (unless (package-installed-p p)
