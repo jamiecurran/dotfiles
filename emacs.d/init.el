@@ -10,7 +10,7 @@
 (when (not package-archive-contents)
   (package-refresh-contents))
 
-(defvar my-packages ('clojure-mode
+(defvar my-packages '(clojure-mode
 		     projectile
 		     paredit
 		     cider
