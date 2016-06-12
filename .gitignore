@@ -1,4 +1,4 @@
-/emacs.d/auto-save-list/
-/emacs.d/elpa
 \#*\#
 projectile-bookmarks.eld
+/emacs.d/*/
+projectile.cache
