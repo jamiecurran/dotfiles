@@ -34,7 +34,8 @@
     (package-install p))) 
 
 (when (memq window-system '(mac ns))
-  (exec-path-from-shell-initialize))
+  (exec-path-from-shell-initialize)
+  (global-set-key (kbd "M-3") '(lambda()(interactive)(insert "#"))))
 
 (add-hook 'emacs-lisp-mode-hook 'paredit-mode)
 (add-hook 'clojure-mode-hook 'paredit-mode)
