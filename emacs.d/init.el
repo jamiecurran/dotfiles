@@ -5,6 +5,8 @@
              '("melpa" . "http://melpa.milkbox.net/packages/") t)
 (add-to-list 'package-archives
 	     '("marmalade" . "http://marmalade-repo.org/packages/"))
+(add-to-list 'load-path "~/.emacs.d/elisp/rvm.el")
+
 (package-initialize)
 
 (when (not package-archive-contents)
@@ -18,7 +20,7 @@
 		     moe-theme
 		     magit
 		     company
-		     scala-mode2
+		     scala-mode
 		     sbt-mode
 		     ensime
 		     haskell-mode
@@ -27,7 +29,13 @@
 		     dockerfile-mode
 		     web-mode
 		     helm
-		     helm-projectile))
+		     helm-projectile
+		     ruby-refactor
+		     flycheck
+		     robe
+		     rinari
+		     rspec-mode
+		     ruby-end))
 
 (dolist (p my-packages)
   (unless (package-installed-p p)
@@ -41,9 +49,28 @@
 (add-hook 'clojure-mode-hook 'paredit-mode)
 (add-hook 'cider-repl-mode-hook 'paredit-mode)
 (add-hook 'after-init-hook 'global-company-mode)
-(add-hook 'clojure-mode-hook ' rainbow-delimiters-mode)
-(add-hook 'cider-repl-mode-hook ' rainbow-delimiters-mode)
+(add-hook 'clojure-mode-hook 'rainbow-delimiters-mode)
+(add-hook 'cider-repl-mode-hook 'rainbow-delimiters-mode)
 (add-hook 'scala-mode-hook 'ensime-scala-mode-hook)
+(add-hook 'ruby-mode-hook 'ruby-hooks)
+
+(defun ruby-hooks ()
+  "Ruby plugins."
+  (ruby-refactor-mode 1)
+  (robe-mode 1)
+  (rvm-activate-corresponding-ruby)
+  (rinari-minor-mode 1)
+  (rspec-mode 1)
+  (ruby-end-mode 1))
+
+(require 'rvm)
+(rvm-use-default)
+
+(eval-after-load 'rspec-mode
+  '(rspec-install-snippets))
+
+(eval-after-load 'company
+  '(push 'company-robe company-backends))
 
 (require 'web-mode)
 (add-to-list 'auto-mode-alist '("\\.ejs\\'" . web-mode))
@@ -55,12 +82,19 @@
 (defun my-web-mode-hook ()
   "Hooks for Web mode."
   (setq web-mode-markup-indent-offset 2)
-  (setq web-mode-css-indent-offset 4)
+  (setq web-mode-css-indent-offset 2)
   (setq web-mode-code-indent-offset 2))
 
 (add-hook 'web-mode-hook 'my-web-mode-hook)
 
 (custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   (quote
+    (ruby-end mongo yaml-mode web-mode scala-mode2 rvm ruby-refactor robe rainbow-delimiters paredit moe-theme magit impatient-mode helm-projectile haskell-mode flycheck exec-path-from-shell ensime dockerfile-mode cider)))
  '(terraform-indent-level 4))
 
 (fset 'insertPound "#")
@@ -103,5 +137,13 @@
 (add-hook 'shell-mode-hook
       	  'ansi-color-for-comint-mode-on)
 
+(global-flycheck-mode)
+
 (require 'moe-theme)
 (moe-dark)
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
