@@ -35,7 +35,9 @@
 		     robe
 		     rinari
 		     rspec-mode
-		     ruby-end))
+		     smartparens
+		     docker
+		     ssh-config-mode))
 
 (dolist (p my-packages)
   (unless (package-installed-p p)
@@ -44,6 +46,8 @@
 (when (memq window-system '(mac ns))
   (exec-path-from-shell-initialize)
   (global-set-key (kbd "M-3") '(lambda()(interactive)(insert "#"))))
+
+(require 'smartparens-config)
 
 (add-hook 'emacs-lisp-mode-hook 'paredit-mode)
 (add-hook 'clojure-mode-hook 'paredit-mode)
@@ -61,7 +65,8 @@
   (rvm-activate-corresponding-ruby)
   (rinari-minor-mode 1)
   (rspec-mode 1)
-  (ruby-end-mode 1))
+  (smartparens-mode 1)
+  (show-smartparens-mode 1))
 
 (require 'rvm)
 (rvm-use-default)
@@ -147,3 +152,13 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
+
+(setenv "PATH" (concat (getenv "PATH") ":/usr/local/bin"))
+(setq exec-path (append exec-path '("/usr/local/bin")))
+;; Use "docker-machine env box" command to find out your environment variables
+(setenv "DOCKER_TLS_VERIFY" "1")
+(setenv "DOCKER_HOST" "tcp://192.168.99.100:2376")
+(setenv "DOCKER_CERT_PATH" "/users/jamie/.docker/machine/machines/dev")
+(setenv "DOCKER_MACHINE_NAME" "dev")
+
+(docker-global-mode)
