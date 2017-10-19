@@ -1,10 +1,10 @@
 (require 'package)
 (add-to-list 'package-archives
-	     '("melpha-stable" . "http://melpa-stable.milkbox.net/packages/"))
+	     '("melpha-stable" . "https://melpa-stable.milkbox.net/packages/"))
 (add-to-list 'package-archives
-             '("melpa" . "http://melpa.milkbox.net/packages/") t)
+             '("melpa" . "https://melpa.milkbox.net/packages/") t)
 (add-to-list 'package-archives
-	     '("marmalade" . "http://marmalade-repo.org/packages/"))
+	     '("marmalade" . "https://marmalade-repo.org/packages/"))
 (add-to-list 'load-path "~/.emacs.d/elisp/rvm.el")
 
 (package-initialize)
@@ -37,7 +37,10 @@
 		     rspec-mode
 		     smartparens
 		     docker
-		     ssh-config-mode))
+		     ssh-config-mode
+		     rbenv
+		     projectile-rails
+		     easy-hugo))
 
 (dolist (p my-packages)
   (unless (package-installed-p p)
@@ -49,6 +52,11 @@
 
 (require 'smartparens-config)
 
+(define-key smartparens-mode-map (kbd "C->") 'sp-forward-slurp-sexp)
+(define-key smartparens-mode-map (kbd "C-<") 'sp-forward-barf-sexp)
+(define-key smartparens-mode-map (kbd "C-M-<") 'sp-backward-slurp-sexp)
+(define-key smartparens-mode-map (kbd "C-M->") 'sp-backward-barf-sexp)
+
 (add-hook 'emacs-lisp-mode-hook 'paredit-mode)
 (add-hook 'clojure-mode-hook 'paredit-mode)
 (add-hook 'cider-repl-mode-hook 'paredit-mode)
@@ -57,6 +65,7 @@
 (add-hook 'cider-repl-mode-hook 'rainbow-delimiters-mode)
 (add-hook 'scala-mode-hook 'ensime-scala-mode-hook)
 (add-hook 'ruby-mode-hook 'ruby-hooks)
+(add-hook 'js-mode-hook #'smartparens-mode)
 
 (defun ruby-hooks ()
   "Ruby plugins."
@@ -66,7 +75,19 @@
   (rinari-minor-mode 1)
   (rspec-mode 1)
   (smartparens-mode 1)
-  (show-smartparens-mode 1))
+  (rainbow-delimiters-mode 1)
+  (hs-minor-mode 1))
+
+(eval-after-load "hideshow"
+  '(add-to-list 'hs-special-modes-alist
+    `(ruby-mode
+      ,(rx (or "def" "class" "module" "do" "{" "[")) ; Block start
+      ,(rx (or "}" "]" "end"))                       ; Block end
+      ,(rx (or "#" "=begin"))                        ; Comment start
+      ruby-forward-sexp nil)))
+
+(global-set-key (kbd "C-c h") 'hs-hide-block)
+(global-set-key (kbd "C-c s") 'hs-show-block)
 
 (require 'rvm)
 (rvm-use-default)
@@ -83,12 +104,16 @@
 (add-to-list 'auto-mode-alist '("\\.css\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.json\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.js\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.\\.js\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.jsx\\'" . web-mode))
 
 (defun my-web-mode-hook ()
   "Hooks for Web mode."
   (setq web-mode-markup-indent-offset 2)
   (setq web-mode-css-indent-offset 2)
-  (setq web-mode-code-indent-offset 2))
+  (setq web-mode-code-indent-offset 2)
+  (smartparens-mode 1)
+  (rainbow-delimiters-mode 1))
 
 (add-hook 'web-mode-hook 'my-web-mode-hook)
 
@@ -129,6 +154,8 @@
 (helm-projectile-on)
 (setq projectile-switch-project-action 'helm-projectile)
 
+(projectile-rails-global-mode)
+
 (setq cider-repl-use-clojure-font-lock t)
 
 (setq inhibit-splash-screen t)
@@ -153,12 +180,17 @@
  ;; If there is more than one, they won't work right.
  )
 
-(setenv "PATH" (concat (getenv "PATH") ":/usr/local/bin"))
-(setq exec-path (append exec-path '("/usr/local/bin")))
-;; Use "docker-machine env box" command to find out your environment variables
-(setenv "DOCKER_TLS_VERIFY" "1")
-(setenv "DOCKER_HOST" "tcp://192.168.99.100:2376")
-(setenv "DOCKER_CERT_PATH" "/users/jamie/.docker/machine/machines/dev")
-(setenv "DOCKER_MACHINE_NAME" "dev")
-
 (docker-global-mode)
+(delete-selection-mode 1)
+
+;; if the files are not already in the load path
+(add-to-list 'load-path "folder-to/visual-regexp/")
+(add-to-list 'load-path "folder-to/visual-regexp-steroids/")
+(require 'visual-regexp-steroids)
+(define-key global-map (kbd "C-c r") 'vr/replace)
+(define-key global-map (kbd "C-c q") 'vr/query-replace)
+;; if you use multiple-cursors, this is for you:
+(define-key global-map (kbd "C-c m") 'vr/mc-mark)
+;; to use visual-regexp-steroids's isearch instead of the built-in regexp isearch, also include the following lines:
+(define-key esc-map (kbd "C-r") 'vr/isearch-backward) ;; C-M-r
+(define-key esc-map (kbd "C-s") 'vr/isearch-forward) ;; C-M-s
