@@ -222,8 +222,6 @@
 
 (require 'prettier-js)
 
-;(setq prettier-js-command "/Users/jamie/projects/bean/frontend/node_modules/.bin/prettier-eslint")
-
 (defun enable-minor-mode (my-pair)
   "Enable minor mode if filename match the regexp.  MY-PAIR is a cons cell (regexp . minor-mode)."
   (if (buffer-file-name)
