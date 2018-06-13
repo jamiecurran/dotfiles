@@ -5,7 +5,6 @@
              '("melpa" . "https://melpa.milkbox.net/packages/") t)
 (add-to-list 'package-archives
 	     '("marmalade" . "https://marmalade-repo.org/packages/"))
-(add-to-list 'load-path "~/.emacs.d/elisp/rvm.el")
 
 (package-initialize)
 
@@ -40,7 +39,12 @@
 		     ssh-config-mode
 		     rbenv
 		     projectile-rails
-		     easy-hugo))
+		     easy-hugo
+		     yaml-mode
+		     markdown-mode
+		     minitest
+		     js2-mode
+		     prettier-js))
 
 (dolist (p my-packages)
   (unless (package-installed-p p)
@@ -68,10 +72,9 @@
 (add-hook 'js-mode-hook #'smartparens-mode)
 
 (defun ruby-hooks ()
-  "Ruby plugins."
+  "Ruby plugins."x
   (ruby-refactor-mode 1)
   (robe-mode 1)
-  (rvm-activate-corresponding-ruby)
   (rinari-minor-mode 1)
   (rspec-mode 1)
   (smartparens-mode 1)
@@ -89,9 +92,6 @@
 (global-set-key (kbd "C-c h") 'hs-hide-block)
 (global-set-key (kbd "C-c s") 'hs-show-block)
 
-(require 'rvm)
-(rvm-use-default)
-
 (eval-after-load 'rspec-mode
   '(rspec-install-snippets))
 
@@ -102,9 +102,9 @@
 (add-to-list 'auto-mode-alist '("\\.ejs\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.css\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.json\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.js\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.\\.js\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.json\\'" . js2-mode))
+(add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
+(add-to-list 'auto-mode-alist '("\\.\\.js\\'" . js2-mode))
 (add-to-list 'auto-mode-alist '("\\.jsx\\'" . web-mode))
 
 (defun my-web-mode-hook ()
@@ -117,6 +117,14 @@
 
 (add-hook 'web-mode-hook 'my-web-mode-hook)
 
+;; for better jsx syntax-highlighting in web-mode
+;; - courtesy of Patrick @halbtuerke
+(defadvice web-mode-highlight-part (around tweak-jsx activate)
+  (if (equal web-mode-content-type "jsx")
+    (let ((web-mode-enable-part-face nil))
+      ad-do-it)
+    ad-do-it))
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -124,7 +132,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (ruby-end mongo yaml-mode web-mode scala-mode2 rvm ruby-refactor robe rainbow-delimiters paredit moe-theme magit impatient-mode helm-projectile haskell-mode flycheck exec-path-from-shell ensime dockerfile-mode cider)))
+    (add-node-modules-path minitest jsx-mode ruby-end mongo yaml-mode web-mode scala-mode2 ruby-refactor robe rainbow-delimiters paredit moe-theme magit impatient-mode helm-projectile haskell-mode flycheck exec-path-from-shell ensime dockerfile-mode cider)))
  '(terraform-indent-level 4))
 
 (fset 'insertPound "#")
@@ -171,6 +179,22 @@
 
 (global-flycheck-mode)
 
+;; disable jshint since we prefer eslint checking
+(setq-default flycheck-disabled-checkers
+  (append flycheck-disabled-checkers
+    '(javascript-jshint)))
+
+(flycheck-add-mode 'javascript-eslint 'web-mode)
+
+;; customize flycheck temp file prefix
+(setq-default flycheck-temp-prefix ".flycheck")
+
+;; disable json-jsonlist checking for json files
+(setq-default flycheck-disabled-checkers
+  (append flycheck-disabled-checkers
+    '(json-jsonlist)))
+
+
 (require 'moe-theme)
 (moe-dark)
 (custom-set-faces
@@ -183,14 +207,40 @@
 (docker-global-mode)
 (delete-selection-mode 1)
 
-;; if the files are not already in the load path
-(add-to-list 'load-path "folder-to/visual-regexp/")
-(add-to-list 'load-path "folder-to/visual-regexp-steroids/")
-(require 'visual-regexp-steroids)
-(define-key global-map (kbd "C-c r") 'vr/replace)
-(define-key global-map (kbd "C-c q") 'vr/query-replace)
-;; if you use multiple-cursors, this is for you:
-(define-key global-map (kbd "C-c m") 'vr/mc-mark)
-;; to use visual-regexp-steroids's isearch instead of the built-in regexp isearch, also include the following lines:
-(define-key esc-map (kbd "C-r") 'vr/isearch-backward) ;; C-M-r
-(define-key esc-map (kbd "C-s") 'vr/isearch-forward) ;; C-M-s
+;; use local eslint from node_modules before global
+;; http://emacs.stackexchange.com/questions/21205/flycheck-with-file-relative-eslint-executable
+(defun my/use-eslint-from-node-modules ()
+  (let* ((root (locate-dominating-file
+                (or (buffer-file-name) default-directory)
+                "node_modules"))
+         (eslint (and root
+                      (expand-file-name "node_modules/eslint/bin/eslint.js"
+                                        root))))
+    (when (and eslint (file-executable-p eslint))
+      (setq-local flycheck-javascript-eslint-executable eslint))))
+(add-hook 'flycheck-mode-hook #'my/use-eslint-from-node-modules)
+
+(require 'prettier-js)
+
+;(setq prettier-js-command "/Users/jamie/projects/bean/frontend/node_modules/.bin/prettier-eslint")
+
+(defun enable-minor-mode (my-pair)
+  "Enable minor mode if filename match the regexp.  MY-PAIR is a cons cell (regexp . minor-mode)."
+  (if (buffer-file-name)
+      (if (string-match (car my-pair) buffer-file-name)
+	  (funcall (cdr my-pair)))))
+
+(add-hook 'web-mode-hook #'(lambda ()
+                            (enable-minor-mode
+                             '("\\.jsx?\\'" . prettier-js-mode))))
+(eval-after-load 'web-mode
+    '(progn
+       (add-hook 'web-mode-hook #'add-node-modules-path)
+       (add-hook 'web-mode-hook #'prettier-js-mode)))
+
+(eval-after-load 'js2-mode
+  '(progn
+     (add-hook 'js2-mode-hook #'add-node-modules-path)
+     (add-hook 'js2-mode-hook #'prettier-js-mode)))
+
+(setq prettier-js-command  "prettier-eslint")
