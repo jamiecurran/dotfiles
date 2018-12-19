@@ -1,8 +1,8 @@
 (require 'package)
 (add-to-list 'package-archives
-	     '("melpha-stable" . "https://melpa-stable.milkbox.net/packages/"))
+	     '("melpha-stable" . "https://stable.melpa.org/packages/") t)
 (add-to-list 'package-archives
-             '("melpa" . "https://melpa.milkbox.net/packages/") t)
+             '("melpa" . "https://melpa.org/packages/") t)
 (add-to-list 'package-archives
 	     '("marmalade" . "https://marmalade-repo.org/packages/"))
 
@@ -44,7 +44,9 @@
 		     markdown-mode
 		     minitest
 		     js2-mode
-		     prettier-js))
+		     prettier-js
+		     add-node-modules-path
+		     alchemist))
 
 (dolist (p my-packages)
   (unless (package-installed-p p)
@@ -70,16 +72,22 @@
 (add-hook 'scala-mode-hook 'ensime-scala-mode-hook)
 (add-hook 'ruby-mode-hook 'ruby-hooks)
 (add-hook 'js-mode-hook #'smartparens-mode)
+(add-hook 'elixir-mode-hook #'elixir-hooks)
+
+(defun elixir-hooks ()
+  "Elixir plugins"
+  (alchemist-mode 1))
 
 (defun ruby-hooks ()
-  "Ruby plugins."x
+  "Ruby plugins."
   (ruby-refactor-mode 1)
   (robe-mode 1)
   (rinari-minor-mode 1)
   (rspec-mode 1)
   (smartparens-mode 1)
   (rainbow-delimiters-mode 1)
-  (hs-minor-mode 1))
+  (hs-minor-mode 1)
+  (setq-local company-dabbrev-downcase nil))
 
 (eval-after-load "hideshow"
   '(add-to-list 'hs-special-modes-alist
@@ -103,9 +111,12 @@
 (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.css\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.json\\'" . js2-mode))
-(add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
-(add-to-list 'auto-mode-alist '("\\.\\.js\\'" . js2-mode))
+(add-to-list 'auto-mode-alist '("\\.js\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.\\.js\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.jsx\\'" . web-mode))
+
+;; (add-to-list 'auto-mode-alist '("\\.jsx\\'" . js2-jsx-mode))
+(add-to-list 'interpreter-mode-alist '("node" . js2-jsx-mode))
 
 (defun my-web-mode-hook ()
   "Hooks for Web mode."
@@ -157,10 +168,13 @@
 (require 'helm-projectile)
 (helm-mode 1)
 
-(projectile-global-mode)
+(projectile-mode +1)
 (setq projectile-completion-system 'helm)
 (helm-projectile-on)
 (setq projectile-switch-project-action 'helm-projectile)
+
+(define-key projectile-mode-map (kbd "s-p") 'projectile-command-map)
+(define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
 
 (projectile-rails-global-mode)
 
@@ -204,7 +218,7 @@
  ;; If there is more than one, they won't work right.
  )
 
-(docker-global-mode)
+;;; (docker-global-mode)
 (delete-selection-mode 1)
 
 ;; use local eslint from node_modules before global
@@ -242,3 +256,15 @@
      (add-hook 'js2-mode-hook #'prettier-js-mode)))
 
 (setq prettier-js-command  "prettier-eslint")
+
+(defun js2-mode-config ()
+  "Hooks for js2 mode."
+  (setq js2-basic-offset 2)
+  (smartparens-mode 1)
+  (rainbow-delimiters-mode 1))
+
+(add-hook 'js2-mode-hook 'js2-mode-config)
+
+(setq web-mode-content-types-alist '(("jsx" . "\\.js[x]?\\'")))
+;; for byebug/pry in rspec-mode
+(add-hook 'after-init-hook 'inf-ruby-switch-setup)
