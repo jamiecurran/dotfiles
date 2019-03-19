@@ -46,7 +46,8 @@
 		     js2-mode
 		     prettier-js
 		     add-node-modules-path
-		     alchemist))
+		     alchemist
+		     rubocop))
 
 (dolist (p my-packages)
   (unless (package-installed-p p)
@@ -87,6 +88,7 @@
   (smartparens-mode 1)
   (rainbow-delimiters-mode 1)
   (hs-minor-mode 1)
+  (rubocop-mode 1)
   (setq-local company-dabbrev-downcase nil))
 
 (eval-after-load "hideshow"
@@ -191,6 +193,8 @@
 (add-hook 'shell-mode-hook
       	  'ansi-color-for-comint-mode-on)
 
+(setq flycheck-ruby-rubocop-executable "~/.rbenv/shims/rubocop")
+
 (global-flycheck-mode)
 
 ;; disable jshint since we prefer eslint checking
@@ -268,3 +272,4 @@
 (setq web-mode-content-types-alist '(("jsx" . "\\.js[x]?\\'")))
 ;; for byebug/pry in rspec-mode
 (add-hook 'after-init-hook 'inf-ruby-switch-setup)
+(setq markdown-command "pandoc")
