@@ -46,8 +46,17 @@
 		     js2-mode
 		     prettier-js
 		     add-node-modules-path
-		     alchemist
-		     rubocop))
+		     rubocop
+		     elixir-mode
+		     ;; eglot
+		     exunit
+		     direnv
+		     mermaid-mode
+		     lsp-mode
+		     lsp-ui
+		     lsp-treemacs
+		     helm-lsp
+		     flycheck-credo))
 
 (dolist (p my-packages)
   (unless (package-installed-p p)
@@ -58,6 +67,8 @@
   (global-set-key (kbd "M-3") '(lambda()(interactive)(insert "#"))))
 
 (require 'smartparens-config)
+
+(direnv-mode)
 
 (define-key smartparens-mode-map (kbd "C->") 'sp-forward-slurp-sexp)
 (define-key smartparens-mode-map (kbd "C-<") 'sp-forward-barf-sexp)
@@ -75,11 +86,52 @@
 (add-hook 'js-mode-hook #'smartparens-mode)
 (add-hook 'elixir-mode-hook #'elixir-hooks)
 
+;; (require 'eglot)
+;; (add-to-list 'eglot-server-programs '(elixir-mode "~/.emacs.d/third_party/elixir-ls/release/language_server.sh"))
+
+
+(require 'direnv)
+;; (require 'flymake-elixir)
+
+;; lsp config
+(require 'lsp-mode)
+(setq lsp-clients-elixir-server-executable (expand-file-name  "~/.emacs.d/third_party/elixir-ls/release/language_server.sh"))
+(setq gc-cons-threshold 100000000)
+(setq read-process-output-max (* 1024 1024))
+
+(add-hook 'flycheck-before-syntax-check-hook 'direnv-update-environment)
+(eval-after-load 'flycheck '(flycheck-credo-setup))
+(setq flycheck-elixir-credo-strict t)
+
+(setq lsp-ui-doc-max-height 13
+      lsp-ui-doc-max-width 80
+      lsp-ui-sideline-ignore-duplicate t
+      lsp-ui-doc-header t
+      lsp-ui-doc-include-signature t
+      lsp-ui-doc-position 'bottom
+      lsp-ui-doc-use-webkit nil
+      lsp-ui-flycheck-enable t
+      lsp-ui-imenu-kind-position 'left
+      lsp-ui-sideline-code-actions-prefix "💡"
+      ;; fix for completing candidates not showing after “Enum.”:
+      company-lsp-match-candidate-predicate #'company-lsp-match-candidate-prefix)
+
 (defun elixir-hooks ()
   "Elixir plugins"
-  (alchemist-mode 1))
+  ;; (eglot-ensure)
+  (smartparens-mode 1)
+  (lambda ()
+    (if (projectile-project-p)
+	(setq elixir-format-arguments
+	      (list "--dot-formatter"
+		    (concat (locate-dominating-file buffer-file-name ".formatter.exs") ".formatter.exs")))
+      (setq elixir-format-arguments nil)))
+  (rainbow-delimiters-mode 1)
+  (lsp-deferred)
+  (add-hook 'before-save-hook 'elixir-format nil t))
 
-(defun ruby-hooks ()
+
+(defun ruby-hooks () 
   "Ruby plugins."
   (ruby-refactor-mode 1)
   (robe-mode 1)
@@ -90,6 +142,7 @@
   (hs-minor-mode 1)
   (rubocop-mode 1)
   (setq-local company-dabbrev-downcase nil))
+
 
 (eval-after-load "hideshow"
   '(add-to-list 'hs-special-modes-alist
@@ -145,7 +198,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (add-node-modules-path minitest jsx-mode ruby-end mongo yaml-mode web-mode scala-mode2 ruby-refactor robe rainbow-delimiters paredit moe-theme magit impatient-mode helm-projectile haskell-mode flycheck exec-path-from-shell ensime dockerfile-mode cider)))
+    (exunit terraform-mode add-node-modules-path minitest jsx-mode ruby-end mongo yaml-mode web-mode scala-mode2 ruby-refactor robe rainbow-delimiters paredit moe-theme magit impatient-mode helm-projectile haskell-mode flycheck exec-path-from-shell ensime dockerfile-mode cider)))
  '(terraform-indent-level 4))
 
 (fset 'insertPound "#")
@@ -179,6 +232,8 @@
 (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
 
 (projectile-rails-global-mode)
+
+(define-key projectile-rails-mode-map (kbd "C-c r") 'projectile-rails-command-map)
 
 (setq cider-repl-use-clojure-font-lock t)
 
@@ -273,3 +328,10 @@
 ;; for byebug/pry in rspec-mode
 (add-hook 'after-init-hook 'inf-ruby-switch-setup)
 (setq markdown-command "pandoc")
+
+(require 'rbenv)
+(global-rbenv-mode)
+
+(eval-after-load "elixir-mode"
+  '(defun elixir-format--mix-executable ()
+     (string-trim-right (shell-command-to-string "asdf which mix"))))
